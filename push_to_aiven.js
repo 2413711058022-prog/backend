@@ -3,11 +3,11 @@ const fs = require('fs');
 const path = require('path');
 
 // Aiven Database Configuration
-const config = {
-  host: 'mysql-46bba74-mopvaishnav-ce41.h.aivencloud.com',
-  port: 20958,
+const aivenConfig = {
+  host: 'mysql-1d7de91b-sxax9009-0bba.h.aivencloud.com',
+  port: 14455,
   user: 'avnadmin',
-  password: 'AVNR_wc7x1c1wGin-MHVdkr7',
+  password: 'AVNS_itg1urgrJU0RHkEOQwY',
   database: 'defaultdb',
   ssl: {
     rejectUnauthorized: false
@@ -15,11 +15,11 @@ const config = {
   connectTimeout: 30000
 };
 
-async function setupDatabase() {
+async function pushToAiven() {
   console.log('🔌 Connecting to Aiven MySQL database...');
   
   try {
-    const connection = await mysql.createConnection(config);
+    const connection = await mysql.createConnection(aivenConfig);
     console.log('✅ Connected successfully!');
 
     // Read and execute schema.sql
@@ -34,7 +34,13 @@ async function setupDatabase() {
       .filter(stmt => stmt.trim().length > 0);
     
     for (const statement of schemaStatements) {
-      await connection.query(statement);
+      try {
+        await connection.query(statement);
+      } catch (err) {
+        if (!err.message.includes('already exists')) {
+          console.log('⚠️  Warning:', err.message.substring(0, 100));
+        }
+      }
     }
     console.log('✅ Tables created successfully!');
 
@@ -51,7 +57,13 @@ async function setupDatabase() {
     
     for (const statement of seedStatements) {
       if (statement.trim()) {
-        await connection.query(statement);
+        try {
+          await connection.query(statement);
+        } catch (err) {
+          if (!err.message.includes('Duplicate entry')) {
+            console.log('⚠️  Warning:', err.message.substring(0, 100));
+          }
+        }
       }
     }
     console.log('✅ Sample data loaded successfully!');
@@ -67,17 +79,20 @@ async function setupDatabase() {
     console.log(`✅ Users: ${users[0].count}`);
 
     await connection.end();
-    console.log('\n🎉 Database setup complete!');
-    console.log('\n📝 Your database is ready to use!');
-    console.log('   Host:', config.host);
-    console.log('   Port:', config.port);
-    console.log('   Database:', config.database);
-    console.log('   User:', config.user);
+    console.log('\n🎉 Database migration complete!');
+    console.log('\n📝 Your Aiven database is ready!');
+    console.log('   Host:', aivenConfig.host);
+    console.log('   Port:', aivenConfig.port);
+    console.log('   Database:', aivenConfig.database);
     
   } catch (error) {
     console.error('❌ Error:', error.message);
+    console.error('\n💡 Troubleshooting:');
+    console.error('   1. Check if Aiven database is running');
+    console.error('   2. Verify IP access is set to 0.0.0.0/0');
+    console.error('   3. Confirm database credentials are correct');
     process.exit(1);
   }
 }
 
-setupDatabase();
+pushToAiven();

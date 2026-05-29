@@ -45,13 +45,19 @@ exports.login = asyncHandler(async (req, res) => {
     'SELECT u.*, r.name AS role FROM users u JOIN roles r ON u.role_id=r.id WHERE u.email=?',
     [email]
   );
-  if (!users.length) return error(res, 'Invalid credentials', 401);
+  if (!users.length) {
+    console.log(`❌ Login failed: Email not found in DB: ${email}`);
+    return error(res, 'Invalid credentials', 401);
+  }
 
   const user = users[0];
   if (!user.is_active) return error(res, 'Account is deactivated', 403);
 
   const valid = await bcrypt.compare(password, user.password_hash);
-  if (!valid) return error(res, 'Invalid credentials', 401);
+  if (!valid) {
+    console.log(`❌ Login failed: Password mismatch for ${email}. Received length: ${password?.length}.`);
+    return error(res, 'Invalid credentials', 401);
+  }
 
   await query('UPDATE users SET last_login=NOW() WHERE id=?', [user.id]);
   await query('INSERT INTO activity_logs (user_id,action) VALUES (?,?)', [user.id, 'LOGIN']);

@@ -256,8 +256,31 @@ exports.updateExam = asyncHandler(async (req, res) => {
 });
 
 exports.deleteExam = asyncHandler(async (req, res) => {
-  await query('DELETE FROM exams WHERE id=?', [req.params.id]);
-  return success(res, {}, 'Exam deleted');
+  const examId = req.params.id;
+  
+  await transaction(async (conn) => {
+    // 1. Delete certificates associated with attempts for this exam
+    await conn.execute(
+      `DELETE c FROM certificates c 
+       INNER JOIN exam_attempts a ON c.attempt_id = a.id 
+       WHERE a.exam_id = ?`,
+      [examId]
+    );
+
+    // 2. Delete exam attempts (will cascade delete attempt_answers)
+    await conn.execute(
+      'DELETE FROM exam_attempts WHERE exam_id = ?',
+      [examId]
+    );
+
+    // 3. Delete exam (will cascade delete exam_questions)
+    await conn.execute(
+      'DELETE FROM exams WHERE id = ?',
+      [examId]
+    );
+  });
+
+  return success(res, {}, 'Exam and all associated attempts and certificates deleted');
 });
 
 exports.publishExam = asyncHandler(async (req, res) => {

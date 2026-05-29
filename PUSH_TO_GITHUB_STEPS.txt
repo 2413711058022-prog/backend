@@ -1,0 +1,43 @@
+STEPS TO PUSH BACKEND CODE TO GITHUB
+=====================================
+
+OPTION 1: Using GitHub Desktop (Easiest)
+-----------------------------------------
+1. Open GitHub Desktop
+2. Click "File" → "Add Local Repository"
+3. Browse to: c:\Users\U Menushaa\Downloads\quiz 1\backend
+4. Click "Add Repository"
+5. If it says "Create a Repository", click that
+6. Click "Publish repository" button (top right)
+7. Uncheck "Keep this code private" (important!)
+8. Repository name: backend-govexam
+9. Click "Publish repository"
+10. Once published, note the GitHub URL shown
+
+OPTION 2: Create New Repository on GitHub Website
+--------------------------------------------------
+1. Go to: https://github.com/new
+2. Repository name: backend-govexam
+3. Make it PUBLIC (important!)
+4. Do NOT initialize with README
+5. Click "Create repository"
+6. Copy the repository URL (should be: https://github.com/YOUR_USERNAME/backend-govexam)
+
+Then in Command Prompt:
+cd "c:\Users\U Menushaa\Downloads\quiz 1\backend"
+git remote remove origin
+git remote add origin https://github.com/YOUR_USERNAME/backend-govexam.git
+git add .
+git commit -m "Initial backend code"
+git branch -M main
+git push -u origin main
+
+AFTER PUSHING TO GITHUB:
+------------------------
+1. Go to Render dashboard
+2. Click on backend-govexam service
+3. Go to Settings
+4. Under "Build & Deploy" → "Repository"
+5. Click "Connect Repository"
+6. Select your new repository
+7. Click "Manual Deploy" → "Clear build cache & deploy"
